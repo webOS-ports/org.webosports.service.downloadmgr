@@ -1,11 +1,5 @@
 [
     {
-        "library": {
-            "name": "foundations",
-            "version": "1.0"
-        }
-    },
-    {
         "source": "javascript/assistants/CancelDownloadAssistant.js"
     },
     {
