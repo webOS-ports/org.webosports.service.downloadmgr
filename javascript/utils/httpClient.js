@@ -48,6 +48,53 @@ var httpClient = (function () {
 		}
 	}
 
+	function printHeaders(headers) {
+		var str = "{ ", first = true;
+		Object.keys(headers).forEach(function (key) {
+			var authStr;
+			if (!first) {
+				str += ", ";
+			} else {
+				first = false;
+			}
+			if (key === "Authorization") {
+				if (headers[key].indexOf("Basic") === 0) {
+					authStr = "Basic auth";
+				} else if (headers[key].indexOf("Bearer") === 0) {
+					authStr = "Oauth auth";
+				} else if (headers[key].indexOf("Digest") === 0) {
+					authStr = "Digest auth";
+				} else {
+					authStr = "Unknown?";
+				}
+
+				str += key + ": " + authStr;
+			} else {
+				str += key + ": " + headers[key];
+			}
+		});
+		str += " }";
+		return str;
+	}
+
+	function printOptions(options) {
+		var str = "{ ", first = true;
+		Object.keys(options).forEach(function (key) {
+			if (!first) {
+				str += ", ";
+			} else {
+				first = false;
+			}
+			if (key === "headers") {
+				str += key + ": " + printHeaders(options[key]);
+			} else {
+				str += key + ": " + Log.printObj(options[key]);
+			}
+		});
+		str += "}";
+		return str;
+	}
+
 	function parseURLIntoOptionsImpl(inUrl, options) {
 		if (!inUrl) {
 			return;
@@ -218,7 +265,7 @@ var httpClient = (function () {
 				Log.log("Message ", reqName(origin, retry), " had error: ", error);
 				if (retries[origin].retry < 5 && !override) {
 					Log.log_httpClient("Trying to resend message ", reqName(origin, retry), ".");
-					sendRequestImpl(options, data, retry + 1, origin).then(function (f) {
+					sendRequestImpl(options, data, retry + 1, origin, authretry).then(function (f) {
 						future.result = f.result; //transfer future result.
 					});
 				} else {
@@ -228,7 +275,7 @@ var httpClient = (function () {
 					} else {
 						Log.log("Already tried message ", reqName(origin, retry), " 5 times. Seems as if server won't answer? Sync seems broken.");
 					}
-					future.result = { returnValue: false, msg: error };
+					future.result = { returnValue: false, returnCode: -1, msg: error };
 				}
 			} else {
 				if (retries[origin].retry > retry) {
@@ -293,7 +340,7 @@ var httpClient = (function () {
 				body: options.binary ? body : body.toString("utf8"),
 				uri: options.prefix + options.path,
 				method: options.method
-			};
+			}, innerfuture;
 			if (options.path.indexOf(":/") >= 0) {
 				result.uri = options.path; //path already was complete, maybe because of proxy usage.
 			}
@@ -307,11 +354,10 @@ var httpClient = (function () {
 				//check if redirected to identical location
 				if (res.headers.location === options.prefix + options.path || //if strings really are identical
 					//or we have default port and string without port is identical:
-						(
-							(
-								(options.port === 80 && options.protocol === "http:") ||
-								(options.port === 443 && options.protocol === "https:")
-							) && res.headers.location === options.protocol + "//" + options.headers.host + options.path
+						((
+							(options.port === 80 && options.protocol === "http:") ||
+							(options.port === 443 && options.protocol === "https:")
+						) && res.headers.location === options.protocol + "//" + options.headers.host + options.path
 						)) {
 					//don't run into redirection endless loop:
 					Log.log("Preventing enless redirect loop, because of redirection to identical location: " + res.headers.location + " === " + options.prefix + options.path);
@@ -325,24 +371,24 @@ var httpClient = (function () {
 				parseURLIntoOptionsImpl(res.headers.location, options);
 				Log.log_httpClient("Redirected to ", res.headers.location);
 				retries[origin].received = false; //we did not recieve this request yet, but only the redirection!
-				sendRequestImpl(options, data, 0, origin).then(function (f) {
+				sendRequestImpl(options, data, 0, origin, authretry).then(function (f) {
 					future.result = f.result; //transfer future result.
 				});
 			} else if (res.statusCode < 300 && options.parse) { //only parse if status code was ok.
 				result.parsedBody = xml.xmlstr2json(body.toString("utf8"));
-				Log.log_httpClient("Parsed Body: ", result.parsedBody);
+				//Log.log_httpClient("Parsed Body: ", result.parsedBody);
 				future.result = result;
-			} else if (res.statusCode === 401 && typeof options.authCallback === "function") {
-				future.nest(options.authCallback(result));
+			} else if (res.statusCode === 401 && !authretry && typeof options.authCallback === "function") {
+				innerfuture = options.authCallback(result);
 
-				future.then(function authFailureCBResultHandling() {
-					var cbResult = future.result;
-					if (cbResult.returnValue === true && !authretry) {
+				innerfuture.then(function authFailureCBResultHandling() {
+					var cbResult = innerfuture.result;
+					if (cbResult.returnValue === true) {
 						if (cbResult.newAuthHeader) {
 							options.headers.Authorization = cbResult.newAuthHeader;
 						}
 						Log.debug("Retrying request with new auth data.");
-						future.nest(sendRequestImpl(options, data, 0, origin, true)); //retry request once with new auth.
+						future.nest(sendRequestImpl(options, data, 0, false, true)); //retry request once with new auth, as new number.
 					} else {
 						future.result = result; //just give back the old, failed, result non the less?
 					}
@@ -372,7 +418,7 @@ var httpClient = (function () {
 			if (res.headers["content-length"] && typeof options.sizeCallback === "function") {
 				options.sizeCallback(res.headers["content-length"]);
 			}
-			
+
 			if (options.filestream) {
 				res.pipe(options.filestream);
 			}
@@ -411,7 +457,7 @@ var httpClient = (function () {
 					}
 
 					Log.log_httpClient("Sending request ", reqName(origin, retry), " with data ", data, " to server.");
-					Log.log_httpClient("Method: ", options.method, " Headers: ", options.headers);
+					Log.log_httpClient("Options: ", printOptions(options));
 					Log.debug("Sending request ", reqName(origin, retry), " to " + options.prefix + options.path);
 
 					if (options.protocol === "https:") {
