@@ -20,7 +20,7 @@
 * Assert
 **/
 
-/*jslint nomen: true, sloppy: true, white: true, vars: true, eqeq: true */
+/*jslint nomen: true, sloppy: true, white: true, vars: true, eqeq: true, node: true */
 
 var Assert = {};
 /** private
@@ -98,7 +98,7 @@ Assert._logMsg = function _throwMsg(msg, defaultMsg, params, defaultParams) {
     Assert._lastLogMsg = msg;
     if (!Assert._squelchLogs) {
         if (typeof(Mojo) !== 'undefined') {
-            Mojo.Log.error(msg);
+            console.error(msg);
         } else {
             console.error(msg);
         }
@@ -640,4 +640,4 @@ Assert.assertJSONObject = function assertJSONObject(obj, msg, params) {
     return ! test;
 };
 
-exports.modul  = Assert;
+module.exports  = Assert;

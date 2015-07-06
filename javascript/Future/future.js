@@ -18,8 +18,8 @@
 
 /*jslint indent: 4, node: true, nomen: true, sloppy: true, white: true */
 
-var Assert = require("./assert"),
-    Queue = require("./queue");
+var Assert = require("./assert");
+var Queue = require("./queue");
 
 function Future(result)
 {
