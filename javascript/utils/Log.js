@@ -1,3 +1,4 @@
+/*jslint node: true */
 /*global console, global, require */
 
 var fs = global.fs;
@@ -6,14 +7,14 @@ if (!global.fs) {
 }
 
 var Log = (function () {
+	"use strict";
+	var filestream;
 
-	var dummy = function () {
-		"use strict"; 
-		return undefined; 
-	};
-	
-	var printObjImpl = function (obj, depth) {
-		"use strict";
+	function dummy() {
+		return undefined;
+	}
+
+	function printObjImpl(obj, depth) {
 		var key, msg = "{";
 		if (depth < 5) {
 			for (key in obj) {
@@ -30,10 +31,9 @@ var Log = (function () {
 			msg = "...";
 		}
 		return msg;
-	};
-	
-	var logBase = function () {
-		"use strict";
+	}
+
+	function logBase() {
 		var i, pos, datum, argsArr = Array.prototype.slice.call(arguments, 0),
 			data;
 
@@ -70,12 +70,10 @@ var Log = (function () {
 				}
 			}
 		}
-	};
+	}
 
-	var filestream;
 	return {
 		setFilename: function (fn) {
-			"use strict";
 			if (filestream) {
 				filestream.end();
 			}
