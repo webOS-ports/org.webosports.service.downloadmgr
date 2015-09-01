@@ -1,8 +1,8 @@
-var DownloadAssistant = function () {};
+var DownloadAssistant = function () { "use strict"; };
 
 /**
  * Parameters:              Required    Type        Description
- *   ticket                 Yes         number      Download ID returned from download method.
+ *   target                 Yes         string      URL of the form "http://file" or "https://file" where file is a well-formed URI targeting a downloadable file.
  *   mime                   No          string      File's MIME type
  *   cookieHeader           No          string      Sets the cookie header for the request, i.e., "foo=bar", or, for multiple cookies, "foo=bar;red=blue;night=day".
  *   targetDir              No          string      The local directory to save the file. This directory must be beneath /media/internal and defaults to /media/internal/downloads if not specified.
@@ -44,7 +44,63 @@ var DownloadAssistant = function () {};
  *   errorCode              No          string      Error code returned on failure.
  *   errorText              No          string      Error message returned on failure.
  */
+/*global Future */
 
-DownloadAssistant.prototype.run = function (outerfuture) {
-    var args = this.controller.args, filename, future = new Future();
-}
+DownloadAssistant.prototype.run = function (outerfuture, subscription) {
+	"use strict";
+	var args = this.controller.args, future = new Future(), options;
+
+	if (!args.target) {
+		outerfuture.exception = { errorCode: -1, errorText: "Need target parameter.", subscribed: args.subscribe };
+		return;
+	}
+
+	function progressCallback(progress) {
+		if (args.subscribe) {
+			var future = subscription.get();
+			if (future) {
+				if (!progress.finished) {
+					future.result = {
+						returnValue: true,
+						ticket: 0,
+						amountReceived: 128,
+						amountTotal: 1024
+					};
+				} else {
+					future.result = {
+						returnValue: true,
+						ticket: 0,
+						url: "",
+						sourceUrl: "",
+						destTempPrefix: ".",
+						destFile: "welcome.html",
+						destPath: "/media/internal/downloads/",
+						subscribed: args.subscribe
+					};
+				}
+			}
+		}
+	}
+
+	options = {
+		url: args.target,
+		mime: args.mime,
+		cookieHeader: args.cookieHeader,
+		targetDir: args.targetDir,
+		targetFilename: args.targetFilename,
+		keepFilenameOnRedirect: !!args.keepFilenameOnRedirect,
+		canHandlePause: !!args.canHandlePause,
+		progressCallback: progressCallback
+	};
+
+	//set outerfuture result after request is send.
+	outerfuture.result = {
+		returnValue: true,
+		ticket: 0,
+		url: "http://",
+		target: "/media/internal/downloads/blubbel.txt"
+	};
+
+	return outerfuture;
+};
+

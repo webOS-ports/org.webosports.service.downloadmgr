@@ -9,6 +9,7 @@
             "description": "Downloads files",
             "golbalized":  false,
             "privatebus":  false,
+            "assistant":   "DownloadManagerAssistant",
             "commands": [
             {
                 "name":      "cancelDownload",

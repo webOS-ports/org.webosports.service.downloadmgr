@@ -366,7 +366,11 @@ var httpClient = (function () {
 					return future;
 				}
 				if (typeof options.redirectCallback === "function") {
-					options.redirectCallback(res.headers.location);
+					//let user create a new stream for piping to, i.e. new filename.
+					var newStream = options.redirectCallback(res.headers.location);
+					if (newStream) {
+						options.filestream = newStream;
+					}
 				}
 				parseURLIntoOptionsImpl(res.headers.location, options);
 				Log.log_httpClient("Redirected to ", res.headers.location);
@@ -420,7 +424,13 @@ var httpClient = (function () {
 			}
 
 			if (options.filestream) {
-				res.pipe(options.filestream);
+				//do not "waste" filestream on redirects, use it only after being redirected.
+				if (res.statusCode >= 200 && res.statusCode < 300) {
+					Log.log_httpClient("Piping data to filestream.");
+					res.pipe(options.filestream);
+				} else {
+					Log.log_httpClient("Not piping, because status code is ", res.statusCode);
+				}
 			}
 			res.on("data", dataCB);
 			res.on("end", function (e) { //sometimes this does not happen. One reason are empty responses..?
