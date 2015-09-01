@@ -1,10 +1,7 @@
 /*jslint node: true */
-/*global console, global, require */
+/*global console, require */
 
-var fs = global.fs;
-if (!global.fs) {
-	fs = require("fs");
-}
+var fs = require("fs");
 
 var Log = (function () {
 	"use strict";
@@ -99,7 +96,7 @@ var Log = (function () {
 
 		log:            logBase,
 		debug:          logBase,
-		log_httpClient: logBase
+		log_httpClient: dummy
 	};
 }());
 
