@@ -1,0 +1,19 @@
+Ticket format:
+ "ticketId INTEGER PRIMARY KEY," +	//id, returned to app and required from app to do anything with ticket
+ "url TEXT," +						//real url of download
+ "sourceUrl TEXT," +				//url originally given to service
+ "destFile TEXT," +					//target file
+ "destPath TEXT," +					//target path, usually /media/internal/downloads
+ "mimetype TEXT," +					//mimetype
+ "amountReceived INTEGER," +		//Bytes received
+ "amountTotal INTEGER," +			//total bytes to download
+ "canHandlePause BOOLEAN," +		//default: false, true if pause possible
+ "completionStatusCode INTEGER," +	//see DownloadStatusQueryAssistant or similar.
+ "httpStatus INTEGER," +			//http status code
+ "interrupted BOOLEAN," +			//true if something went wrong.
+ "completed BOOLEAN," +				//true if done
+ "aborted BOOLEAN," +				//ture if aborted
+ "target TEXT," +					//complete path to file
+ "owner TEXT," +					//appId of owner
+ "interface TEXT," +				//interface used, i.e. "wifi".
+ "startTime INTEGER" +				//start time of download, for book keeping stuff.
