@@ -10,7 +10,7 @@ var DownloadInternalAssistant = function () { "use strict"; };
 
 DownloadInternalAssistant.prototype.run = function (outerfuture, subscription) {
 	"use strict";
-	var args = this.controller.args, future = new Future(), options;
+	var args = this.controller.args, future = new Future(), options, ticket;
 
 	if (!args.target) {
 		outerfuture.exception = { errorCode: -1, errorText: "Need target parameter.", subscribed: args.subscribe };
@@ -24,14 +24,14 @@ DownloadInternalAssistant.prototype.run = function (outerfuture, subscription) {
 				if (!progress.finished) {
 					future.result = {
 						returnValue: true,
-						ticket: 0,
+						ticket: ticket.ticketId,
 						amountReceived: 128,
 						amountTotal: 1024
 					};
 				} else {
 					future.result = {
 						returnValue: true,
-						ticket: 0,
+						ticket: ticket.ticketId,
 						url: "",
 						sourceUrl: "",
 						destTempPrefix: ".",
@@ -55,10 +55,10 @@ DownloadInternalAssistant.prototype.run = function (outerfuture, subscription) {
 		progressCallback: progressCallback
 	};
 
-	//set outerfuture result after request is send.
+	//set outerfuture result after request is done.
 	outerfuture.result = {
 		returnValue: true,
-		ticket: 0,
+		ticket: ticket.ticketId,
 		url: "http://",
 		target: "/media/internal/downloads/blubbel.txt"
 	};
