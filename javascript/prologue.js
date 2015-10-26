@@ -1,11 +1,6 @@
 /*exported Future, Log, fs, httpClient, checkResult, servicePath */
 /*global IMPORTS, console, require:true, process */
 
-
-//some global config:
-var dbFolder = "/var/palm/";
-var dbFile = dbFolder + "downloadManager.db";
-
 console.error("Starting to load libraries");
 
 //now add some node.js imports:
@@ -18,6 +13,7 @@ var fs = require("fs"); //required for own node modules and current vCard conver
 var servicePath = fs.realpathSync(".");
 var libraryPath = servicePath + "/javascript/utils";
 console.log("Service Path: " + servicePath);
+var Config = require(servicePath + "/javascript/Config.js");
 var Future = require(servicePath + "/javascript/Future");
 var Log = require(libraryPath + "Log.js");
 Log.setFilename("/media/internal/.org.webosports.service.downloadManager.log");
