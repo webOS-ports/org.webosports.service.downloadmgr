@@ -14,7 +14,8 @@ var httpClient = (function () {
 	var proxy = {port: 0, host: "", valid: false},
 		httpsProxy = {port: 0, host: "", valid: false},
 		globalReqNum = 0,
-		retries = {};
+		retries = {},
+		timeoutDefault = 60000;
 
 	function setProxy(proxyString, inProxy) {
 		var proxyParts = process.env.http_proxy.match(/^(https?:\/\/)?([A-Za-z0-9\.\-_]+)(:([0-9]+))?/i);
@@ -40,9 +41,9 @@ var httpClient = (function () {
 
 	function setTimeout(obj, callback) {
 		if (obj.setTimeout) {
-			obj.setTimeout(300000, callback);
+			obj.setTimeout(timeoutDefault, callback);
 		} else if (obj.connection) {
-			obj.connection.setTimeout(300000, callback);
+			obj.connection.setTimeout(timeoutDefault, callback);
 		} else {
 			Log.log("Error: Could not setTimeout!!");
 		}
@@ -340,7 +341,7 @@ var httpClient = (function () {
 				body: options.binary ? body : body.toString("utf8"),
 				uri: options.prefix + options.path,
 				method: options.method
-			}, innerfuture;
+			}, innerfuture, newStream;
 			if (options.path.indexOf(":/") >= 0) {
 				result.uri = options.path; //path already was complete, maybe because of proxy usage.
 			}
@@ -367,7 +368,7 @@ var httpClient = (function () {
 				}
 				if (typeof options.redirectCallback === "function") {
 					//let user create a new stream for piping to, i.e. new filename.
-					var newStream = options.redirectCallback(res.headers.location);
+					newStream = options.redirectCallback(res.headers.location);
 					if (newStream) {
 						options.filestream = newStream;
 					}
@@ -521,6 +522,12 @@ var httpClient = (function () {
 
 		parseURLIntoOptions: function (inUrl, options) {
 			return parseURLIntoOptionsImpl(inUrl, options);
+		},
+
+		setTimeoutDefault: function (inVal) {
+			if (inVal) {
+				timeoutDefault = inVal;
+			}
 		}
 	};
 }());

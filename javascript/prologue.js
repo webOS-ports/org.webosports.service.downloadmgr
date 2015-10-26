@@ -22,6 +22,7 @@ var Future = require(servicePath + "/javascript/Future");
 var Log = require(libraryPath + "Log.js");
 Log.setFilename("/media/internal/.org.webosports.service.downloadManager.log");
 var httpClient = require(libraryPath + "httpClient.js");
+httpClient.setTimeoutDefault(300000);
 var checkResult = require(libraryPath + "checkResult.js");
 var DBManager = require(libraryPath + "DBManager.js");
 
