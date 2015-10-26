@@ -16,7 +16,7 @@ var fs = require("fs"); //required for own node modules and current vCard conver
 
 //node in webos is a bit picky about require paths. Really point it to the library here.
 var servicePath = fs.realpathSync(".");
-var libraryPath = servicePath + "/javascript/utils");
+var libraryPath = servicePath + "/javascript/utils";
 console.log("Service Path: " + servicePath);
 var Future = require(servicePath + "/javascript/Future");
 var Log = require(libraryPath + "Log.js");
