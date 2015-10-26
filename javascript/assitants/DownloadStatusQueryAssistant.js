@@ -1,4 +1,4 @@
-var DownloadStatusQueryAssistant = function () {};
+var DownloadStatusQueryAssistant = function () { "use strict"; };
 
 /**
  * Parameters:              Required    Type        Description
@@ -40,7 +40,9 @@ var DownloadStatusQueryAssistant = function () {};
  *   subscribed             Yes         boolean     Set to true if subscribed to downloads from that URI.
 
  */
+/*global Future */
 
 DownloadStatusQueryAssistant.prototype.run = function (outerfuture) {
-    var args = this.controller.args, filename, future = new Future();
-}
+	"use strict";
+	var args = this.controller.args, filename, future = new Future();
+};

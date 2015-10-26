@@ -1,4 +1,5 @@
-var DeleteDownloadedFileAssistant = function () {};
+/*global Future */
+var DeleteDownloadedFileAssistant = function () { "use strict"; };
 
 /**
  * Parameters:              Required    Type        Description
@@ -11,5 +12,6 @@ var DeleteDownloadedFileAssistant = function () {};
  */
 
 DeleteDownloadedFileAssistant.prototype.run = function (outerfuture) {
-    var args = this.controller.args, filename, future = new Future();
-}
+	"use strict";
+	var args = this.controller.args, filename, future = new Future();
+};

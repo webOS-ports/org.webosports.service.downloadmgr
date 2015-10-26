@@ -1,4 +1,4 @@
-var ListPendingAssistant = function () {};
+var ListPendingAssistant = function () { "use strict"; };
 
 /**
  * Parameters:              Required    Type        Description
@@ -9,7 +9,9 @@ var ListPendingAssistant = function () {};
  *   count                  No          number          Number of downloads in progress.
  *   downloads              No          object array    One object for each pending download. This object is absent if there are no pending downloads.
  */
+/*global Future */
 
 ListPendingAssistant.prototype.run = function (outerfuture) {
-    var args = this.controller.args, filename, future = new Future();
-}
+	"use strict";
+	var args = this.controller.args, filename, future = new Future();
+};

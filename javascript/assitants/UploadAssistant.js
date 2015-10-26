@@ -1,4 +1,4 @@
-var UploadAssistant = function () {};
+var UploadAssistant = function () { "use strict"; };
 
 /**
  * Parameters:              Required    Type        Description
@@ -35,7 +35,9 @@ var UploadAssistant = function () {};
  *   errorCode              No          string      Error code returned on failure.
  *   subscribed             Yes         boolean     Set to true if subscribed to downloads from that URI.
  */
+/*global Future */
 
 UploadAssistant.prototype.run = function (outerfuture) {
-    var args = this.controller.args, filename, future = new Future();
-}
+	"use strict";
+	var args = this.controller.args, filename, future = new Future();
+};

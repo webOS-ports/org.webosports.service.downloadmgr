@@ -1,4 +1,4 @@
-var PauseDownloadAssistant = function () {};
+var PauseDownloadAssistant = function () { "use strict"; };
 
 /**
  * Parameters:              Required    Type        Description
@@ -9,7 +9,9 @@ var PauseDownloadAssistant = function () {};
  *   subscribed             Yes         boolean     Was download subscribed flag.
  *   errorCode              No          string      Error message returned on failure.
  */
+/*global Future */
 
 PauseDownloadAssistant.prototype.run = function (outerfuture) {
-    var args = this.controller.args, filename, future = new Future();
-}
+	"use strict";
+	var args = this.controller.args, filename, future = new Future();
+};

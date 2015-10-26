@@ -1,4 +1,5 @@
-var ClearHistoryAssistant = function () {};
+/*global Future */
+var ClearHistoryAssistant = function () { "use strict"; };
 
 /**
  * Parameters:              Required    Type            Description
@@ -9,5 +10,6 @@ var ClearHistoryAssistant = function () {};
  */
 
 ClearHistoryAssistant.prototype.run = function (outerfuture) {
-    var args = this.controller.args, filename, future = new Future();
-}
+	"use strict";
+	var args = this.controller.args, filename, future = new Future();
+};
