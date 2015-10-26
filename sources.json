@@ -1,5 +1,8 @@
 [
 	{
+		"source": "javascript/prologue.js"
+	},
+	{
 		"source": "javascript/assistants/CancelDownloadAssistant.js"
 	},
 	{
@@ -7,6 +10,9 @@
 	},
 	{
 		"source": "javascript/assistants/DownloadAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/DownloadInternalAssistant.js"
 	},
 	{
 		"source": "javascript/assistants/DownloadManagerAssistant.js"

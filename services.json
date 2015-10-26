@@ -1,68 +1,74 @@
 {
-    "id":                "com.palm.downloadmanager",
-    "description":       "Downloads files",
-    "engine":            "node",
-    "activityTimeout":   "30",
-    "services": [
-    {
-            "name":        "com.palm.downloadmanager",
-            "description": "Downloads files",
-            "golbalized":  false,
-            "privatebus":  false,
-            "assistant":   "DownloadManagerAssistant",
-            "commands": [
-            {
-                "name":      "cancelDownload",
-                "assistant": "CancelDownloadAssistant",
-                "public":    true
-            },
-            {
-                "name":      "deleteDownloadedFile",
-                "assistant": "DeleteDownloadedFileAssistant",
-                "public":    true
-            },
-            {
-                "name":      "download",
-                "assistant": "DownloadAssistant",
-                "public":    true,
-                "subscribe": true
-            },
-            {
-                "name":      "downloadStatusQuery",
-                "assistant": "DownloadStatusQueryAssistant",
-                "public":    true
-            },
-            {
-                "name":      "listPending",
-                "assistant": "ListPendingAssistant",
-                "public":    true
-            },
-            {
-                "name":      "pauseDownload",
-                "assistant": "PauseDownloadAssistant",
-                "public":    true
-            },
-            {
-                "name":      "resumeDownload",
-                "assistant": "ResumeDownloadAssistant",
-                "public":    true
-            },
-            {
-                "name":      "upload",
-                "assistant": "UploadAssistant",
-                "public":    true,
-                "subscribe": true
-            },
-            {
-                "name":      "getAllHistory",
-                "assistant": "GetAllHistoryAssistant",
-                "public":    true
-            },
-            {
-                "name":      "clearHistory",
-                "assistant": "ClearHistoryAssistant",
-                "public":    true
-            }
-        ]
-    }]
+	"id":                "com.palm.downloadmanager",
+	"description":       "Downloads files",
+	"engine":            "node",
+	"activityTimeout":   "30",
+	"services": [
+	{
+			"name":        "com.palm.downloadmanager",
+			"description": "Downloads files",
+			"golbalized":  false,
+			"privatebus":  false,
+			"assistant":   "DownloadManagerAssistant",
+			"commands": [
+			{
+				"name":      "cancelDownload",
+				"assistant": "CancelDownloadAssistant",
+				"public":    true
+			},
+			{
+				"name":      "deleteDownloadedFile",
+				"assistant": "DeleteDownloadedFileAssistant",
+				"public":    true
+			},
+			{
+				"name":      "download",
+				"assistant": "DownloadAssistant",
+				"public":    true,
+				"subscribe": true
+			},
+			{
+				"name":      "downloadInternal",
+				"assistant": "DownloadInternalAssistant",
+				"public":    false,
+				"subscribe": true
+			},
+			{
+				"name":      "downloadStatusQuery",
+				"assistant": "DownloadStatusQueryAssistant",
+				"public":    true
+			},
+			{
+				"name":      "listPending",
+				"assistant": "ListPendingAssistant",
+				"public":    true
+			},
+			{
+				"name":      "pauseDownload",
+				"assistant": "PauseDownloadAssistant",
+				"public":    true
+			},
+			{
+				"name":      "resumeDownload",
+				"assistant": "ResumeDownloadAssistant",
+				"public":    true
+			},
+			{
+				"name":      "upload",
+				"assistant": "UploadAssistant",
+				"public":    true,
+				"subscribe": true
+			},
+			{
+				"name":      "getAllHistory",
+				"assistant": "GetAllHistoryAssistant",
+				"public":    true
+			},
+			{
+				"name":      "clearHistory",
+				"assistant": "ClearHistoryAssistant",
+				"public":    true
+			}
+		]
+	}]
 }
