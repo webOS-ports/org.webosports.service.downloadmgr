@@ -13,7 +13,7 @@ var fs = require("fs"); //required for own node modules and current vCard conver
 var servicePath = fs.realpathSync(".");
 var libraryPath = servicePath + "/javascript/utils";
 console.log("Service Path: " + servicePath);
-var Config = require(servicePath + "/javascript/Config.js");
+var Config = require(servicePath + "/javascript/config.js");
 var Future = require(servicePath + "/javascript/Future");
 var Log = require(libraryPath + "Log.js");
 Log.setFilename("/media/internal/.org.webosports.service.downloadManager.log");
