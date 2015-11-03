@@ -12,15 +12,15 @@ var DBManager = (function () {
 		getByTicket: function (ticketId) {
 			var future = new Future();
 			if (!ticketId) {
-				future.result = {returnValue: false, errorText: "Need ticketId."};
+				future.exception = "Need ticketId.";
 			} else {
 				database.get("SELECT * FROM tickettable WHERE ticketId IS $ticketId", {
 					$ticketId: ticketId
 				}, function getCB(err, row) {
 					if (err) {
-						future.result = {returnValue: false, error: err};
+						future.exception = "SQLITE Error: " + JSON.stringify(err);
 					} else if (!row) {
-						future.result = {returnValue: false, error: {errorText: "Ticket not found."}};
+						future.exception = "Ticket not found.";
 					} else {
 						future.result = {
 							returnValue: true,
@@ -37,7 +37,7 @@ var DBManager = (function () {
 		getByAppId: function (appId) {
 			var future = new Future();
 			if (!appId) {
-				future.result = {returnValue: false, errorText: "Need appId."};
+				future.exception = "Need appId.";
 			} else {
 				//Have a hard limit of 100 most recent entries here. We don't want this to potentially fill all our memory, right?
 				//I don't think this is important enough to implement a "ticket" system, right?
@@ -45,7 +45,7 @@ var DBManager = (function () {
 					$appId: appId
 				}, function getCB(err, rows) {
 					if (err || !rows) {
-						future.result = {returnValue: false, error: err};
+						future.exception = "SQLITE Error: " + JSON.stringify(err);
 					} else {
 						future.result = {
 							returnValue: true,
@@ -62,13 +62,13 @@ var DBManager = (function () {
 		deleteByTicket: function (ticketId) {
 			var future = new Future();
 			if (!ticketId) {
-				future.result = {returnValue: false, errorText: "Need ticketId."};
+				future.exception = "Need ticketId.";
 			} else {
 				database.run("DELETE FROM tickettable WHERE ticketId IS $ticketId", {
 					$ticketId: ticketId
 				}, function deleteCB(err) {
 					if (err) {
-						future.result = {returnValue: false, error: err};
+						future.exception = "SQLITE Error: " + JSON.stringify(err);
 					} else {
 						future.result = {returnValue: true};
 					}
@@ -82,13 +82,13 @@ var DBManager = (function () {
 		deleteByAppId: function (appId) {
 			var future = new Future();
 			if (!appId) {
-				future.result = {returnValue: false, errorText: "Need appId."};
+				future.exception = "Need appId.";
 			} else {
 				database.run("DELETE FROM tickettable WHERE owner IS $appId", {
 					$appId: appId
 				}, function deleteCB(err) {
 					if (err) {
-						future.result = {returnValue: false, error: err};
+						future.exception = "SQLITE Error: " + JSON.stringify(err);
 					} else {
 						Log.debug("Deleted ", this.changes, " rows for app ", appId);
 						future.result = {returnValue: true};
@@ -108,7 +108,7 @@ var DBManager = (function () {
 
 			database.run("DELETE FROM tickettable WHERE startTime < $oneMonth", {$oneMonth: oneMonth}, function deleteCB(err) {
 				if (err) {
-					throw err;
+					future.exception = "SQLITE Error: " + JSON.stringify(err);
 				} else {
 					Log.debug("OneMonth cleanup deleted ", this.changes, " rows.");
 					future.result = {returnValue: true};
@@ -119,36 +119,47 @@ var DBManager = (function () {
 				var result = future.result, //consume result and, if it was exception, error out here, too.
 					innerFuture = new Future(),
 					deleteCount = 0;
-				database.each("SELECT tickedId, target FROM tickettable WHERE startTime < $oneWeek", {$oneWeek: oneWeek}, function processOneEntry(error, row) {
-					innerFuture.then(function innerProcessOneEntry() {
-						var result = innerFuture.result;
+				database.each("SELECT ticketId, target FROM tickettable WHERE startTime < $oneWeek", {$oneWeek: oneWeek}, function processOneEntry(error, row) {
+					if (error) {
+						Log.log("Got error from db: ", error);
+						future.exception = "SQLITE Error: " + JSON.stringify(error);
+					} else {
+						innerFuture.then(function innerProcessOneEntry() {
+							var result = innerFuture.result;
 
-						fs.access(row.target, function existsCB(err) {
-							if (err) { //file probably does not exist anymore..
-								Log.debug("Deleting ", row.ticketId);
-								database.run("DELETE FROM tickettable WHERE tickedId IS $ticketId", {$ticketId: row.ticketId});
-								deleteCount += 1;
-							} else {
-								Log.debug("File ", row.target, " for ", row.ticketId, " still exists. Keep ticket.");
-							}
-							innerFuture.result = {go: true}; //next, please.
+							fs.access(row.target, function existsCB(err) {
+								if (err) { //file probably does not exist anymore..
+									Log.debug("Deleting ", row.ticketId);
+									database.run("DELETE FROM tickettable WHERE ticketId IS $ticketId", {$ticketId: row.ticketId}, function delCB(err) {
+										if (err) {
+											Log.debug("Error in delete: ", err);
+										}
+									});
+									deleteCount += 1;
+								} else {
+									Log.debug("File ", row.target, " for ", row.ticketId, " still exists. Keep ticket.");
+								}
+								innerFuture.result = {go: true}; //next, please.
+							});
 						});
-					});
+					}
 				}, function dbComplete(error, numRows) {
 					if (error) {
-						future.exception = error; //error out.
+						Log.log("Got error from db (in dbComplete): ", error);
+						future.exception = "SQLITE Error: " + JSON.stringify(error);
+					} else {
+
+						innerFuture.then(function allDone() {
+							if (innerFuture.exception) {
+								future.exception = innerFuture.exception;
+							} else {
+								Log.debug("Cleanup done. Processed ", numRows, " rows in week cleanup. Deleted: ", deleteCount);
+								future.result = {retrunValue: true}; //all went well.
+							}
+						});
+
+						innerFuture.result = {go: true}; //let them fly!
 					}
-
-					innerFuture.then(function allDone() {
-						if (innerFuture.exception) {
-							future.exception = innerFuture.exception;
-						} else {
-							Log.debug("Cleanup done. Processed ", numRows, " rows in week cleanup. Deleted: ", deleteCount);
-							future.result = {retrunValue: true}; //all went well.
-						}
-					});
-
-					innerFuture.result = {go: true}; //let them fly!
 				});
 			});
 
@@ -168,7 +179,7 @@ var DBManager = (function () {
 
 			//check if necessary fields are filled.
 			if (!ticket.url) {
-				future.result = { returnValue: false, error: {errorText: "Need url in ticket."}};
+				future.exception = "Need url in ticket.";
 				return future;
 			}
 			ticketData.$url = ticket.url;
@@ -195,12 +206,17 @@ var DBManager = (function () {
 				database.run("INSERT INTO tickettable (url, sourceUrl, destFile, destPath, mimetype, amountReceived, amountTotal, canHandlePause, completionStatusCode, httpStatus, interrupted, completed, aborted, target, owner, interface, startTime) VALUES ($url, $sourceUrl, $destFile, $destPath, $mimetype, $amountReceived, $amountTotal, $canHandlePause, $completionStatusCode, $httpStatus, $interrupted, $completed, $aborted, $target, $owner, $interface, $startTime)", ticketData,
 					function putCB(err) {
 						if (err) {
-							future.result = {returnValue: false, error: err};
+							future.exception = "SQLITE Error: " + JSON.stringify(err);
 						} else {
-							Log.debug("Inserted ticket with ", this.lastId, " id.");
-							ticket.ticketId = this.lastId;
-							ticketData.$ticketId = this.lastId;
-							future.result = {returnValue: true, id: this.lastId};
+							if (this.lastID >= 0) {
+								Log.debug("Inserted ticket with ", this.lastID, " id.");
+								ticket.ticketId = this.lastID;
+								ticketData.$ticketId = this.lastID;
+								future.result = {returnValue: true, id: this.lastID};
+							} else {
+								Log.log("No id after insert. Something must have gone wrong...?");
+								future.exception = "SQLITE Error: Insert failed, no ID returned.";
+							}
 						}
 					});
 			} else {
@@ -208,7 +224,7 @@ var DBManager = (function () {
 				database.run("UPDATE tickettable SET url = $url, sourceUrl = $sourceUrl, destFile = $destFile, destPath = $destPath, mimetype = $mimetype, amountReceived = $amountReceived, amountTotal = $amountTotal, canHandlePause = $canHandlePause, completionStatusCode = $completionStatusCode, httpStatus = $httpStatus, interrupted = $interrupted, completed = $completed, aborted = $aborted, target = $target, owner = $owner, interface = $interface, startTime = $startTime) WHERE ticketId = $ticketId", ticketData,
 					function putCB(err) {
 						if (err) {
-							future.result = {returnValue: false, error: err};
+							future.exception = "SQLITE Error: " + JSON.stringify(err);
 						} else {
 							Log.debug("Updated ticket with ", ticketData.$ticketId, " id, affected: ", this.changes);
 							future.result = {returnValue: true, id: ticketData.$ticketId};
@@ -226,7 +242,7 @@ var DBManager = (function () {
 
 			database.on("error", function dabaseOpenFail(err) {
 				Log.log("Error opening database: ", err);
-				future.result = { retrunValue: false, error: err };
+				future.exception = "SQLITE Error: " + JSON.stringify(err);
 			});
 
 			database.on("open", function databaseOpened() {
@@ -239,7 +255,7 @@ var DBManager = (function () {
 					//check if table already exists:
 					database.all("SELECT name FROM sqlite_master WHERE type='table'", function checkTableCB(err, rows) {
 						if (err) {
-							future.result = { returnValue: false, error: err };
+							future.exception = "SQLITE Error: " + JSON.stringify(err);
 						} else {
 							Log.debug("Got rows from check if table is there: ", rows);
 							//decide how to go on, if table is there, finish, if not, create tables.
@@ -275,7 +291,11 @@ var DBManager = (function () {
 								 "interface TEXT," +				//interface used, i.e. "wifi".
 								 "startTime INTEGER" +				//start time of download, for book keeping stuff.
 								 ");", function (err) {
-							future.result = {returnValue: !err, error: err};
+							if (err) {
+								future.exception = "SQLITE Error: " + JSON.stringify(err);
+							} else {
+								future.result = {returnValue: true};
+							}
 						});
 				} else {
 					future.result = result;
