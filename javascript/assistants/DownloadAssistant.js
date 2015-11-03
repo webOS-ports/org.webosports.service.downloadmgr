@@ -51,7 +51,7 @@ DownloadAssistant.prototype.run = function (outerfuture, subscription) {
 	var args = this.controller.args, future = new Future(), options;
 
 	if (!args.target) {
-		outerfuture.exception = { errorCode: -1, errorText: "Need target parameter.", subscribed: args.subscribe };
+		outerfuture.exception = "Need target parameter.";
 		return;
 	}
 

@@ -3,15 +3,15 @@
 * It sets up the sqlite db if necessary and does some cleaning operations, too.
 */
 /*jslint node: true */
-/*global Config, Future, fs, DBManager */
+/*global Config, Future, fs, DBManager, Log */
 
-var KeyManagerServiceAssistant = function () {
+var DownloadManagerAssistant = function () {
 	"use strict";
 };
 
-KeyManagerServiceAssistant.prototype.setup = function () {
+DownloadManagerAssistant.prototype.setup = function () {
 	"use strict";
-	var future = new Future(), masterkey;
+	var future = new Future(), outerFuture = new Future(), masterkey;
 
 	fs.exists(Config.dbFolder, function createDirIfNecessary(exists) {
 		if (!exists) {
@@ -45,5 +45,17 @@ KeyManagerServiceAssistant.prototype.setup = function () {
 		}
 	});
 
-	return future;
+	future.then(this, function end() {
+		var result, error = false;
+		if (future.exception) {
+			error = true;
+			result = future.exception;
+		} else {
+			result = future.result;
+		}
+		Log.debug("Startup done " + (error ? "with error (!!!):" : ":"), result);
+		outerFuture.result = { returnValue: !!error };
+	});
+
+	return outerFuture;
 };
