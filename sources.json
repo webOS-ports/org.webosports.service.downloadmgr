@@ -6,6 +6,9 @@
 		"source": "javascript/assistants/CancelDownloadAssistant.js"
 	},
 	{
+		"source": "javascript/assistants/ClearHistoryAssistant.js"
+	},
+	{
 		"source": "javascript/assistants/DeleteDownloadedFileAssistant.js"
 	},
 	{
@@ -21,6 +24,9 @@
 		"source": "javascript/assistants/DownloadStatusQueryAssistant.js"
 	},
 	{
+		"source": "javascript/assistants/GetAllHistoryAssistant.js"
+	},
+	{
 		"source": "javascript/assistants/ListPendingAssistant.js"
 	},
 	{
@@ -31,11 +37,5 @@
 	},
 	{
 		"source": "javascript/assistants/UploadAssistant.js"
-	},
-	{
-		"source": "javascript/assistants/GetAllHistoryAssistant.js"
-	},
-	{
-		"source": "javascript/assistants/ClearHistoryAssistant.js"
 	}
 ]
