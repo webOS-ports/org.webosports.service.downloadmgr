@@ -96,7 +96,7 @@ var Log = (function () {
 
 		log:            logBase,
 		debug:          logBase,
-		log_httpClient: dummy
+		log_httpClient: logBase
 	};
 }());
 
