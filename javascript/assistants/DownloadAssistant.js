@@ -1,3 +1,4 @@
+/*global Downloader, Log, DBManager, Config */
 var DownloadAssistant = function () { "use strict"; };
 
 /**
@@ -26,15 +27,15 @@ var DownloadAssistant = function () { "use strict"; };
  *   amountTotal            No          number      Total number of bytes downloaded.
  *   canHandlePause         No          boolean     Pause and resume functions can be used during download flag.
  *   completionStatusCode   No          number      Completion status code:
-                                                        -1 -- General error
-                                                        -2 -- Connect timeout
-                                                        -3 -- Corrupt file
-                                                        -4 -- File system error
-                                                        -5 -- HTTP error
-                                                        11 -- Interrupted
-                                                        12 -- Cancelled
-                                                        200 -- Success
-                                                        ...Other HTTP return codes (besides 200)...
+														-1 -- General error
+														-2 -- Connect timeout
+														-3 -- Corrupt file
+														-4 -- File system error
+														-5 -- HTTP error
+														11 -- Interrupted
+														12 -- Cancelled
+														200 -- Success
+														...Other HTTP return codes (besides 200)...
  *   httpStatus             No          number      Returns the request's actual HTTP status code without filtering. For example, if a file was not found on the server, it would be "404" (not found). If that was the case, completionStatusCode would be "-5".
  *   interrupted            No          boolean     true if download was interrupted.
  *   completed              No          boolean     true if download is complete.
@@ -48,58 +49,127 @@ var DownloadAssistant = function () { "use strict"; };
 
 DownloadAssistant.prototype.run = function (outerfuture, subscription) {
 	"use strict";
-	var args = this.controller.args, future = new Future(), options;
+	var args = this.controller.args, future = new Future(), options, ticket, lastSend = 0;
 
 	if (!args.target) {
-		outerfuture.exception = "Need target parameter.";
+		outerfuture.exception = {message: "Need target parameter.", errorCode: "illegal_arguments"};
 		return;
 	}
 
-	function progressCallback(progress) {
+	function progressCallback(future) {
+		var exception = future.exception, progress = future.result;
+		if (progress) {
+			progress = progress.ticket;
+			progress.ticket = progress.ticketId;
+		}
+		Log.debug("Progress: ", progress);
+		Log.debug("Exception: ", exception);
 		if (args.subscribe) {
 			var future = subscription.get();
 			if (future) {
-				if (!progress.finished) {
-					future.result = {
-						returnValue: true,
-						ticket: 0,
-						amountReceived: 128,
-						amountTotal: 1024
-					};
-				} else {
-					future.result = {
-						returnValue: true,
-						ticket: 0,
-						url: "",
-						sourceUrl: "",
-						destTempPrefix: ".",
-						destFile: "welcome.html",
-						destPath: "/media/internal/downloads/",
-						subscribed: args.subscribe
-					};
-				}
+				/*
+				future.result = {
+					returnValue: true,
+					ticket: ticket.ticketId,
+					amountReceived: ticket.amountReceived,
+					amountTotal: ticket.amountTotal
+				};*/
+				progress.ticket = progress.ticketId;
+				future.result = progress;
+				lastSend = Date.now();
 			}
+		}
+
+		if (progress && !(progress.completed || progress.aborted || progress.interrupted)) {
+			setTimeout(deliverProgress.bind(this), 500);
+		} else {
+			Log.debug("Final result. Cancel subscription:");
+			this.controller.cancelSubscription();
+			outerfuture.result = progress;
 		}
 	}
 
+	function deliverProgress() {
+		DBManager.getByTicket(ticket.ticketId).then(progressCallback.bind(this));
+	}
+
 	options = {
-		url: args.target,
-		mime: args.mime,
 		cookieHeader: args.cookieHeader,
-		targetDir: args.targetDir,
-		targetFilename: args.targetFilename,
-		keepFilenameOnRedirect: !!args.keepFilenameOnRedirect,
-		canHandlePause: !!args.canHandlePause,
-		progressCallback: progressCallback
+		keepFilenameOnRedirect: !!args.keepFilenameOnRedirect
 	};
 
-	//set outerfuture result after request is send.
-	outerfuture.result = {
-		returnValue: true,
-		ticket: 0,
-		url: "http://",
-		target: "/media/internal/downloads/blubbel.txt"
+	ticket = {
+		url: args.target,
+		mimetype: args.mime,
+		destPath: args.targetDir,
+		destFile: args.targetFilename,
+		canHandlePause: !!args.canHandlePause
 	};
+	Downloader.getFilename({ticket: ticket}); //let's fill up path and filename from url.
+	Log.debug("Putting new ticket: ", ticket);
+	future.nest(DBManager.putTicket(ticket));
+
+	future.then(this, function putTicketDone() {
+		var result = future.result, resultFuture;
+		Log.debug("Got ticketId: ", result);
+		if (result.id >= 0) {
+			ticket.ticketId = result.id;
+			options.ticketId = result.id;
+
+			//ticket is stored. Build activity so that activity manager keeps device "awake"
+			//and service running and allow this assistant to return directly.
+			//subscribe if args.subscribe.
+			PalmCall.call("palm://com.palm.activitymanager/", "create", {
+				activity: {
+					name: "download" + ticket.ticketId,
+					description: "Download activity for ticket " + ticket.ticketId,
+					type: {
+						//foreground: true,
+						immediate: true,
+						priority: "low", //will this cause issues?
+						userInitiated: true,
+						pausable: ticket.canHandlePause,
+						cancellable: false,
+						power: true,
+						powerDebounce: true
+					},
+					callback: {
+						method: "palm://com.palm.downloadmanager/downloadInternal",
+						params: {
+							ticketId: ticket.ticketId
+						}
+					}
+				},
+				start: true
+			});
+
+			if (args.subscribe && subscription) {
+				resultFuture = subscription.get();
+			}
+			if (!resultFuture) {
+				//not subscribed or coult not get subscription future
+				resultFuture = outerfuture;
+			} else {
+				//subscription active, deliver status in interval:
+				setTimeout(deliverProgress.bind(this), 50);
+			}
+
+			//set outerfuture result after request is send, i.e. will return now.
+			resultFuture.result = {
+				returnValue: true,
+				ticket: ticket.ticketId,
+				url: ticket.url,
+				sourceUrl: ticket.sourceUrl,
+				destTempPrefix: Config.destTempPrefix,
+				destFile: ticket.destFile,
+				destPath: ticket.destPath,
+				subscribed: args.subscribe,
+				target: ticket.target
+			};
+		} else {
+			outerfuture.exception = result.error;
+		}
+	});
 
 	return outerfuture;
 };

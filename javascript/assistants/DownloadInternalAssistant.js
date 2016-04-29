@@ -39,7 +39,6 @@ DownloadInternalAssistant.prototype.run = function (outerfuture, subscription) {
 				lastSend = Date.now();
 			}
 		}
-
 	}
 
 	//get a ticket from db (if no ticket, yet, put into db in order to get ID first).
