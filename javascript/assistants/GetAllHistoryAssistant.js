@@ -15,5 +15,28 @@ var GetAllHistoryAssistant = function () { "use strict"; };
 
 GetAllHistoryAssistant.prototype.run = function (outerfuture) {
 	"use strict";
-	var args = this.controller.args, filename, future = new Future();
+	var args = this.controller.args, future = new Future();
+
+	if (!args.owner) {
+		outerfuture.exception = {message: "Need owner parameter.", errorCode: "illegal_arguments"};
+		return;
+	}
+
+	DBManager.getByAppId(args.owner).then(function processResults(future) {
+		var tickets = future.result.tickets, items = [];
+		if (!tickets) {
+			outerfuture.result = {items: []};
+		} else {
+			tickets.forEach(function checkIfFilePresent(ticket) {
+				var item = {
+					fileExistsOnFilesys: fs.existsSync(ticket.target),
+					completionStatusCode: ticket.completionStatusCode,
+					recordString: ticket.destFile
+				};
+			});
+			outerfuture.result = {
+				items: items
+			}
+		}
+	})
 };
