@@ -3,6 +3,9 @@
 
 console.error("Starting to load libraries");
 
+var libraries = MojoLoader.require({ name: "foundations", version: "1.0" });
+var PalmCall = libraries["foundations"].Comms.PalmCall;
+
 //now add some node.js imports:
 if (typeof require === "undefined") {
 	require = IMPORTS.require;
