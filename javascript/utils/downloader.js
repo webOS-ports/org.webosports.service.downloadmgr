@@ -12,7 +12,7 @@ var Downloader = (function () {
 	function sizeCallback(options, size) {
 		Log.debug("Got size: ", size, " for ", options.url);
 		if (options.ticket) {
-			options.ticket.amountTotal = size;
+			options.ticket.amountTotal = parseInt(size, 10);
 		}
 		options.lastPrinted = 0;
 		options.totalSize = size;
