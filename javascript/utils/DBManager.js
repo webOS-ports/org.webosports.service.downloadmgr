@@ -136,8 +136,8 @@ var DBManager = (function () {
 						innerFuture.then(function innerProcessOneEntry() {
 							var result = innerFuture.result;
 
-							fs.access(row.target, function existsCB(err) {
-								if (err) { //file probably does not exist anymore..
+							fs.exists(row.target, function existsCB(exists) {
+								if (!exists) { //file does not exist anymore..
 									Log.debug("Deleting ", row.ticketId);
 									database.run("DELETE FROM tickettable WHERE ticketId IS $ticketId", {$ticketId: row.ticketId}, function delCB(err) {
 										if (err) {
