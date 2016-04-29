@@ -145,12 +145,12 @@ var Downloader = (function () {
 				//translate httpClient result into ticket
 				if (options.ticket) {
 					options.ticket.httpStatus = result.returnCode;
-					if (!options.ticket.completionStatusCode) { //only set those if not yet present.
-						options.ticket.interrupted = !result.returnValue;
-						options.ticket.completed = result.returnValue;
-						if (result.returnValue) {
-							options.ticket.completionStatusCode = 200;
-						}
+					//only set those if not yet present.
+					options.ticket.interrupted = !result.returnValue;
+					options.ticket.completed = result.returnValue;
+					if (result.returnValue) {
+						options.ticket.completionStatusCode = 200;
+					} else {
 						if (result.returnCode < 0) {
 							options.ticket.completionStatusCode = result.returnCode; //currently only -1 = general error. Do we really need this to be more specific?
 						} else {
