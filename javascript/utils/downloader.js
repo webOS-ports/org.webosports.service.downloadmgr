@@ -158,7 +158,16 @@ var Downloader = (function () {
 						}
 					}
 				}
-				future.result = result; //transfer result outside.
+
+				//rename file to get rid of temp prefix:
+				fs.rename(options.currentFilename, options.target, function (err) {
+					if (err) {
+						future.exception = "Filesystem error: " + JSON.stringify(err);
+					} else {
+						delete options.ticket.tempFile;
+						future.result = result; //transfer result outside.
+					}
+				});
 			});
 
 			return future;
@@ -182,9 +191,6 @@ var Downloader = (function () {
 			}
 			if (!options.url) {
 				throw "Missing url.";
-			}
-			if (options.target) {
-				return options.target;
 			}
 
 			var fpath, filename, filepath, c = 0;
@@ -222,12 +228,14 @@ var Downloader = (function () {
 				options.ticket.destFile = filename;
 			}
 
+			options.currentFilename = fpath + Config.destTempPrefix + filename;
 			options.target = fpath + filename;
 			if (options.ticket) {
 				options.ticket.target = fpath + filename;
+				options.ticket.tempFile = options.currentFilename;
 			}
 
-			return options.target;
+			return options.currentFilename;
 		}
 	};
 }());
