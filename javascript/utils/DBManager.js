@@ -5,7 +5,8 @@ var sqlite3 = require("sqlite3").verbose();
 
 var DBManager = (function () {
 	"use strict";
-	var database;
+	var database,
+		cache = {};
 
 	return {
 		//returns ticket by id. Future -> res.returnValue = true -> res.ticket contains all data. If returnValue = false -> either error or ticket with this ID not in DB.
@@ -14,20 +15,27 @@ var DBManager = (function () {
 			if (!ticketId) {
 				future.exception = "Need ticketId.";
 			} else {
-				database.get("SELECT * FROM tickettable WHERE ticketId IS $ticketId", {
-					$ticketId: ticketId
-				}, function getCB(err, row) {
-					if (err) {
-						future.exception = "SQLITE Error: " + JSON.stringify(err);
-					} else if (!row) {
-						future.exception = "Ticket not found.";
-					} else {
-						future.result = {
-							returnValue: true,
-							ticket: row
-						};
-					}
-				});
+				if (cache[ticketId]) {
+					future.result = {
+						returnValue: true,
+						ticket: cache[ticketId]
+					};
+				} else {
+					database.get("SELECT * FROM tickettable WHERE ticketId IS $ticketId", {
+						$ticketId: ticketId
+					}, function getCB(err, row) {
+						if (err) {
+							future.exception = {message: "SQLITE Error: " + JSON.stringify(err), errorCode: "sqlite_error"};
+						} else if (!row) {
+							future.exception = {message: "Ticket not found.", errorCode: "ticket_not_found"};
+						} else {
+							future.result = {
+								returnValue: true,
+								ticket: row
+							};
+						}
+					});
+				}
 			}
 
 			return future;
@@ -64,6 +72,7 @@ var DBManager = (function () {
 			if (!ticketId) {
 				future.exception = "Need ticketId.";
 			} else {
+				delete cache[ticketId];
 				database.run("DELETE FROM tickettable WHERE ticketId IS $ticketId", {
 					$ticketId: ticketId
 				}, function deleteCB(err) {
@@ -212,6 +221,7 @@ var DBManager = (function () {
 								Log.debug("Inserted ticket with ", this.lastID, " id.");
 								ticket.ticketId = this.lastID;
 								ticketData.$ticketId = this.lastID;
+								cache[ticket.ticketId] = ticket;
 								future.result = {returnValue: true, id: this.lastID};
 							} else {
 								Log.log("No id after insert. Something must have gone wrong...?");
@@ -227,6 +237,7 @@ var DBManager = (function () {
 							future.exception = "SQLITE Error: " + JSON.stringify(err);
 						} else {
 							Log.debug("Updated ticket with ", ticketData.$ticketId, " id, affected: ", this.changes);
+							cache[ticket.ticketId] = ticket;
 							future.result = {returnValue: true, id: ticketData.$ticketId};
 						}
 					});
