@@ -45,4 +45,22 @@ var DownloadStatusQueryAssistant = function () { "use strict"; };
 DownloadStatusQueryAssistant.prototype.run = function (outerfuture) {
 	"use strict";
 	var args = this.controller.args, filename, future = new Future();
+
+	if (!args.ticket && args.ticket !== 0) {
+		outerfuture.exception = {errorText: "Need ticket parameter.", errorCode: "ticket_not_found", ticket: args.ticket};
+		return;
+	}
+
+	DBManager.getByTicket(args.ticket).then(function queryResult(future) {
+		var result;
+		if (future.exception) {
+			result = future.exception;
+			result.ticket = args.ticket;
+			outerfuture.exception = result;
+		} else {
+			result = future.result.ticket;
+			result.ticket = result.ticketId; //for backwards compability.
+			outerfuture.result = result;
+		}
+	});
 };
