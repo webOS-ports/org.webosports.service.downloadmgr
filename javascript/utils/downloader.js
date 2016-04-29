@@ -37,18 +37,23 @@ var Downloader = (function () {
 	}
 
 	function redirectCallback(options, url) {
-		var newFilename = path.basename(url);
-		Log.debug("Got new url: ", url, " new filename would be ", newFilename);
-		//stream = fs.createWriteStream(newFilename);
-		//return stream;
+		options.url = url;
+		if (options.ticket) {
+			options.ticket.url = url;
+		}
+		Log.debug("Got new url: ", url);
 
 		if (options.keepFilenameOnRedirect) {
 			Log.debug("Client wants us to keep filename, so do nothing.");
 			return;
 		}
 
+		var oldFilename, newFilename;
+		oldFilename = options.currentFilename;
+		newFilename = Downloader.getFilename(options); //refill target
+
 		//TODO: check if this is possible on device. Otherwise we need to get rid of old file. We could, of course, also wait till download is done and rename file then...
-		fs.rename(options.filename, newFilename, function (err) {
+		fs.rename(oldFilename, newFilename, function (err) {
 			if (err) {
 				console.log("Could not rename file, because: ", err);
 			} else {
@@ -56,11 +61,6 @@ var Downloader = (function () {
 				options.filename = newFilename;
 			}
 		});
-
-		options.url = url;
-		if (options.ticket) {
-			options.ticket.url = url;
-		}
 
 		if (typeof options.redirectCallback === "function") {
 			options.redirectCallback(url);
