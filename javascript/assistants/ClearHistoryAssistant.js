@@ -11,5 +11,12 @@ var ClearHistoryAssistant = function () { "use strict"; };
 
 ClearHistoryAssistant.prototype.run = function (outerfuture) {
 	"use strict";
-	var args = this.controller.args, filename, future = new Future();
+	var args = this.controller.args, future = new Future();
+
+	if (!args.owner) {
+		outerfuture.exception = {message: "Need owner parameter.", errorCode: "illegal_arguments"};
+		return;
+	}
+
+	outerfuture.nest(DBManager.deleteByAppId(args.owner));
 };
