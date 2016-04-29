@@ -24,5 +24,37 @@ var CancelDownloadAssistant = function () { "use strict"; };
 
 CancelDownloadAssistant.prototype.run = function (outerfuture) {
 	"use strict";
-	var args = this.controller.args, filename, future = new Future();
+	var args = this.controller.args, future = new Future();
+
+	if (!args.ticket) {
+		outerfuture.exception = {message: "Need ticket parameter.", errorCode: "illegal_arguments"};
+		return;
+	}
+
+	Downloader.cancel(args.ticket);
+	DBManager.getByTicket(args.ticket).then(function deleteFile(future) {
+		if (future.exception) {
+			outerfuture.exception = future.exception;
+		} else {
+			var ticket = future.result.ticket;
+			ticket.aborted = true;
+			DBManager.putTicket(ticket);
+			if (ticket.tempFile) {
+				fs.unlink(ticket.tempFile, function (err) {
+					if (err && err.code !== "ENOENT") { //if not there, then all is fine.
+						outerfuture.exception = {message: err.message, errorCode: err.code};
+					} else {
+						ticket.tempFile = false;
+						DBManager.putTicket(ticket);
+						outerfuture.result = ticket;
+					}
+				});
+			} else {
+				//file was already done?
+				//should we delete here, too?
+				//TODO: we do not yet check if file already exists -> could be abused to delete files!
+				outerfuture.result = ticket;
+			}
+		}
+	});
 };
