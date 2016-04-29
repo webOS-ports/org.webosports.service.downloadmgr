@@ -53,7 +53,7 @@ var DBManager = (function () {
 					$appId: appId
 				}, function getCB(err, rows) {
 					if (err || !rows) {
-						future.exception = "SQLITE Error: " + JSON.stringify(err);
+						future.exception = {message: "SQLITE Error: " + JSON.stringify(err), errorCode: "sqlite_error"};
 					} else {
 						future.result = {
 							returnValue: true,
