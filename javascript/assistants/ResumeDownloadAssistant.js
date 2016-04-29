@@ -13,5 +13,7 @@ var ResumeDownloadAssistant = function () { "use strict"; };
 
 ResumeDownloadAssistant.prototype.run = function (outerfuture) {
 	"use strict";
-	var args = this.controller.args, filename, future = new Future();
+	var args = this.controller.args, future = new Future();
+
+	outerfuture.exception = {message: "Not yet implemented.", errorCode: "not_implemented"};
 };
