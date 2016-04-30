@@ -19,8 +19,8 @@ DownloadInternalAssistant.prototype.run = function (outerfuture, subscription) {
 	"use strict";
 	var args = this.controller.args, future = new Future(), options, ticket, lastSend = Date.now();
 
-	if (!args.target && !args.ticketId) {
-		outerfuture.exception = "Need target or ticketId parameter.";
+	if (!args.ticketId) {
+		outerfuture.exception = "Need ticketId parameter.";
 		return;
 	}
 
@@ -42,31 +42,8 @@ DownloadInternalAssistant.prototype.run = function (outerfuture, subscription) {
 	}
 
 	//get a ticket from db (if no ticket, yet, put into db in order to get ID first).
-	if (args.ticketId) {
-		Log.debug("Getting by ticketId: ", args.ticketId);
-		future.nest(DBManager.getByTicket(args.ticketId));
-	} else {
-		ticket = {
-			url: args.target,
-			mimetype: args.mime,
-			destPath: args.targetDir,
-			destFile: args.targetFilename,
-			canHandlePause: !!args.canHandlePause
-		};
-		Downloader.getFilename({ticket: ticket}); //let's fill up path and filename from url.
-		Log.debug("Putting new ticket: ", ticket);
-		future.nest(DBManager.putTicket(ticket));
-
-		future.then(this, function putTicketDone() {
-			var result = future.result;
-			Log.debug("Got ticketId: ", result);
-			if (result.id >= 0) {
-				future.nest(DBManager.getByTicket(result.id));
-			} else {
-				outerfuture.exception = result.error;
-			}
-		});
-	}
+	Log.debug("Getting by ticketId: ", args.ticketId);
+	future.nest(DBManager.getByTicket(args.ticketId));
 
 	future.then(this, function processTicketIntoOptions() {
 		var result = future.result;
@@ -82,7 +59,8 @@ DownloadInternalAssistant.prototype.run = function (outerfuture, subscription) {
 				keepFilenameOnRedirect: !!args.keepFilenameOnRedirect,
 				canHandlePause: result.ticket.canHandlePause,
 				receivedCallback: args.subscribe ? progressCallback : undefined,
-				ticket: result.ticket
+				ticket: result.ticket,
+				privileged: args.privileged
 			};
 			ticket = result.ticket;
 

@@ -195,8 +195,14 @@ var Downloader = (function () {
 
 			var fpath, filename, filepath, c = 0;
 			if (options.targetDir) {
+				if (!options.privileged && options.targetDir.indexOf("/media/internal") !== 0) {
+					throw {message: "Can not download files outside /media/internal!", errorCode: "invalid_arguments"};
+				}
 				fpath = options.targetDir;
 			} else if (options.ticket && options.ticket.destPath) {
+				if (!options.privileged && options.ticket.destPath.indexOf("/media/internal") !== 0) {
+					throw {message: "Can not download files outside /media/internal!", errorCode: "invalid_arguments"};
+				}
 				fpath = options.ticket.destPath;
 			} else {
 				fpath = "/media/internal/downloads";

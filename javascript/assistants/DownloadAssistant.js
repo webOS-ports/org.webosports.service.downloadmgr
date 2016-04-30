@@ -49,12 +49,18 @@ var DownloadAssistant = function () { "use strict"; };
 
 DownloadAssistant.prototype.run = function (outerfuture, subscription) {
 	"use strict";
-	var args = this.controller.args, future = new Future(), options, ticket, lastSend = 0;
+	var args = this.controller.args, future = new Future(), options, ticket, lastSend = 0, appId, isPrivileged;
 
 	if (!args.target) {
 		outerfuture.exception = {message: "Need target parameter.", errorCode: "illegal_arguments"};
 		return;
 	}
+
+	appId = this.controller.message.applicationID().split(" ")[0];
+	if (!appId) {
+		appId = this.controller.message.senderServiceName();
+	}
+	isPrivileged = appId.indexOf("org.webosports") === 0 || appId.indexOf("com.palm") === 0;
 
 	function progressCallback(future) {
 		var exception = future.exception, progress = future.result;
@@ -101,11 +107,11 @@ DownloadAssistant.prototype.run = function (outerfuture, subscription) {
 	ticket = {
 		url: args.target,
 		mimetype: args.mime,
-		destPath: args.targetDir,
 		destFile: args.targetFilename,
+		destPath: args.targetDir,
 		canHandlePause: !!args.canHandlePause
 	};
-	Downloader.getFilename({ticket: ticket}); //let's fill up path and filename from url.
+	Downloader.getFilename({ticket: ticket, privileged: isPrivileged}); //let's fill up path and filename from url.
 	Log.debug("Putting new ticket: ", ticket);
 	future.nest(DBManager.putTicket(ticket));
 
@@ -136,7 +142,8 @@ DownloadAssistant.prototype.run = function (outerfuture, subscription) {
 					callback: {
 						method: "palm://com.palm.downloadmanager/downloadInternal",
 						params: {
-							ticketId: ticket.ticketId
+							ticketId: ticket.ticketId,
+							privileged: isPrivileged
 						}
 					}
 				},
