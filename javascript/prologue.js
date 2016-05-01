@@ -10,7 +10,7 @@ var PalmCall = libraries["foundations"].Comms.PalmCall;
 if (typeof require === "undefined") {
 	require = IMPORTS.require;
 }
-var fs = require("fs"); //required for own node modules and current vCard converter.
+var fs = require("fs"); //required for own node modules
 
 //node in webos is a bit picky about require paths. Really point it to the library here.
 var servicePath = fs.realpathSync(".");
@@ -22,7 +22,7 @@ Log.setFilename("/media/internal/.org.webosports.service.downloadManager.log");
 var httpClient = require(libraryPath + "httpClient.js");
 httpClient.setTimeoutDefault(300000);
 var checkResult = require(libraryPath + "checkResult.js");
-var DBManager = require(libraryPath + "DBManager.js");
+var DBManager = require(libraryPath + "DBManager_memory_only.js");
 var Downloader = require(libraryPath + "downloader.js");
 
 console.error("--------->Loaded Libraries OK");
