@@ -126,9 +126,13 @@ var Downloader = (function () {
 			httpClientOptions.binary = true; //set this to prevent httpClient to try anything fancy and just pipe input to file.
 			httpClientOptions.method = "GET";
 			httpClientOptions.headers = {
-				Cookie: options.cookieHeader,
-				"Content-Type": options.mime
 			};
+			if (options.cookieHeader) {
+				httpClientOptions.headers.Cookie = options.cookieHeader;
+			}
+			if (options.mime) {
+				httpClientOptions.headers["Content-Type"] = options.mime;
+			}
 			httpClientOptions.sizeCallback = sizeCallback.bind(this, options);
 			httpClientOptions.receivedCallback = receivedCallback.bind(this, options);
 			httpClientOptions.redirectCallback = redirectCallback.bind(this, options);
