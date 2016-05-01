@@ -143,7 +143,8 @@ DownloadAssistant.prototype.run = function (outerfuture, subscription) {
 						method: "palm://com.palm.downloadmanager/downloadInternal",
 						params: {
 							ticketId: ticket.ticketId,
-							privileged: isPrivileged
+							privileged: isPrivileged,
+							subscribe: true //this is necessary in order to protect downloadInternal command from timeout.
 						}
 					}
 				},
