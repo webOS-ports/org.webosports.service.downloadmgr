@@ -67,9 +67,10 @@ DownloadAssistant.prototype.run = function (outerfuture, subscription) {
 		if (progress) {
 			progress = progress.ticket;
 			progress.ticket = progress.ticketId;
+			Log.debug("Progress: ", progress);
+		} else {
+			Log.log("Exception: ", exception);
 		}
-		Log.debug("Progress: ", progress);
-		Log.debug("Exception: ", exception);
 		if (args.subscribe) {
 			var future = subscription.get();
 			if (future) {

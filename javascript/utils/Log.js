@@ -95,8 +95,8 @@ var Log = (function () {
 		printObj: printObjImpl,
 
 		log:            logBase,
-		debug:          logBase,
-		log_httpClient: logBase
+		debug:          dummy,
+		log_httpClient: dummy
 	};
 }());
 
