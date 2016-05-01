@@ -111,7 +111,7 @@ DownloadAssistant.prototype.run = function (outerfuture, subscription) {
 		destPath: args.targetDir,
 		canHandlePause: !!args.canHandlePause
 	};
-	Downloader.getFilename({ticket: ticket, privileged: isPrivileged}); //let's fill up path and filename from url.
+	Downloader.getFilename({ticket: ticket, privileged: isPrivileged, owner: appId}); //let's fill up path and filename from url.
 	Log.debug("Putting new ticket: ", ticket);
 	future.nest(DBManager.putTicket(ticket));
 
