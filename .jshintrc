@@ -1,0 +1,7 @@
+{
+    "globals": {
+        "log": false,
+        "debug": false
+    },
+    "node": true
+}

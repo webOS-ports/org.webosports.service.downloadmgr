@@ -1,0 +1,47 @@
+[
+	{
+		"library": {
+			"name": "foundations",
+			"version": "1.0"
+		}
+	},
+	{
+		"source": "javascript/prologue.js"
+	},
+	{
+		"source": "javascript/assistants/CancelDownloadAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/ClearHistoryAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/DeleteDownloadedFileAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/DownloadAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/DownloadInternalAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/DownloadManagerAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/DownloadStatusQueryAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/GetAllHistoryAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/ListPendingAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/PauseDownloadAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/ResumeDownloadAssistant.js"
+	},
+	{
+		"source": "javascript/assistants/UploadAssistant.js"
+	}
+]

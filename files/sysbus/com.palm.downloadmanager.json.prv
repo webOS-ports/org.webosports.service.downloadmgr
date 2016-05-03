@@ -1,0 +1,1 @@
+{"role": {"allowedNames": ["com.palm.downloadmanager"], "type": "regular", "exeName": "js"}, "permissions": [{"inbound": ["*"], "outbound": ["*"], "service": "com.palm.downloadmanager"}]}
