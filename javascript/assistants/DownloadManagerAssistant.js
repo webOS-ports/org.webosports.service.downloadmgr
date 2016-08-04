@@ -13,7 +13,7 @@ DownloadManagerAssistant.prototype.setup = function () {
 	"use strict";
 	var future = new Future(), outerFuture = new Future(), masterkey;
 
-	fs.exists(Config.dbFolder, function createDirIfNecessary(exists) {
+	fs.access(Config.dbFolder, function createDirIfNecessary(exists) {
 		if (!exists) {
 			fs.mkdir(Config.dbFolder, function (err) {
 				if (err) {
