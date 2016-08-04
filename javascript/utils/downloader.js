@@ -227,9 +227,11 @@ var Downloader = (function () {
 			} else if (options.url.indexOf("/") > 0 && options.url.charAt(options.url.length - 1) !== "/") { //if there is a filename in url, use this.
 				filename = path.basename(options.url);
 			} else {
-				while (fs.existsSync(fpath + "download" + c)) {
-					c += 1;
-				}
+				try {
+					while (fs.accessSync(fpath + "download" + c)) {
+						c += 1;
+					}
+				} catch(e) {}
 				filename = "download" + c;
 			}
 

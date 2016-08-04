@@ -28,8 +28,13 @@ GetAllHistoryAssistant.prototype.run = function (outerfuture) {
 			outerfuture.result = {items: []};
 		} else {
 			tickets.forEach(function checkIfFilePresent(ticket) {
+				var ticketTargetExists = false;
+				try {
+					fs.accessSync(ticket.target);
+					ticketTargetExists = true;
+				} catch(e) {}
 				var item = {
-					fileExistsOnFilesys: fs.existsSync(ticket.target),
+					fileExistsOnFilesys: ticketTargetExists,
 					completionStatusCode: ticket.completionStatusCode,
 					recordString: ticket.destFile
 				};
